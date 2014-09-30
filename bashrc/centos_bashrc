@@ -1,0 +1,66 @@
+# one path to rule them all
+[ -d /opt/bin ] && export PATH=$PATH:/opt/bin
+# one locale to rule them all
+unset LC_ALL
+unset LANGUAGE
+unset LC_CTYPE
+export LANG=en_US.utf8
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+# check for GNU ls
+LS=ls ; [ `which gls 2> /dev/null` ] && LS=gls
+DIRCOLS=dircolors ; [ `which gdircolors 2> /dev/null` ] && DIRCOLS=gdircolors
+# Enable sane completion
+. /etc/bash_completion
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+if [ "$TERM" != "dumb" ]; then
+# enable color support of grep
+export GREP_OPTIONS='--color=auto'
+# enable color support of ls
+lscols=auto
+# to get emacs -nw to use 256 colors
+export TERM=xterm-256color
+if [ "$USER" == "root" ];then
+PS1='\[$(tput setaf 5)\]\h\[$(tput setaf 3)\] \[\e[1;34m\]\W\[\e[m\] \[$(tput setaf 2)\]${ERROR_FLAG:+\[$(tput setaf 1)\]}#\[$(tput sgr0)\] '
+else
+PS1='\[$(tput setaf 3)\]\h\[$(tput setaf 5)\] \[\e[1;34m\]\W\[\e[m\] \[$(tput setaf 2)\]${ERROR_FLAG:+\[$(tput setaf 1)\]}\$\[$(tput sgr0)\] '
+fi
+else
+lscols=none
+PS1="\h\$ "
+fi
+
+[[ -s $HOME/.bash_functions ]] && . $HOME/.bash_functions
+if [[ $(function_exists __git_ps1) == 'function' ]]; then
+PS1=$PS1'\[\e[1;32m\]$(__parse_git)\[\e[m\]' # git
+fi
+
+dir() { $LS --color=$lscols -lFh "$@";}
+dirt() { dir -rt "$@";}
+dird() { dir -d "$@";}
+dira() { for d in "${@:-.}"; do (cd "$d";pwd; dird .*); done;}
+rea() { history | egrep "${@:-}";}
+m() { less "$@";}
+e() { $EMACS -nw "$@";}
+c() { cat "$@";}
+export EDITOR=$EMACS
+## history
+# lots of history
+export HISTSIZE=9999
+export HISTFILESIZE=$HISTSIZE
+# agglomerate history from multiple shells
+export HISTCONTROL="ignoredups"
+shopt -s histappend
+#the below will make all commands visible in all shells
+#PROMPT_COMMAND="$PROMPT_COMMAND ; history -a ; history -c; history -r"
+# multi-line commands
+shopt -s cmdhist
+# machine-local file outside git
+[ -f ~/.localbashrc ] && . ~/.localbashrc || uname -a
